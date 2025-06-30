@@ -10,7 +10,7 @@
 - GPU: NVDIA GeForce RTX 4060 8G
 
 ### 软件环境
-- Python: 3.9 (Conda环境: traffic)
+- Python: 3.9 (Conda环境: test)
 - PyTorch: 1.10.1 (CUDA 11.8)
 - NumPy: 2.0.2 (注意: 与PyTorch 1.10.1存在兼容性问题)
 - Transformers: 4.52.4
