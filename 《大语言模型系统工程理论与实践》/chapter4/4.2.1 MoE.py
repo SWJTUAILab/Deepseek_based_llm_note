@@ -19,7 +19,7 @@ class ExpertLayer(nn.Module):
         return x
 
 class MoELayer(nn.Module):
-    """混合专家模型层"""
+    """混合专家模型层 - 改进版本"""
     def __init__(self, input_size, output_size, num_experts, hidden_size, k=1, capacity_factor=1.0, dropout=0.1):
         super(MoELayer, self).__init__()
         self.input_size = input_size
@@ -42,72 +42,94 @@ class MoELayer(nn.Module):
     
     def forward(self, x, is_training=True):
         batch_size, seq_len, _ = x.shape
+        original_shape = x.shape
+        
+        # 重塑输入为 [batch_size * seq_len, input_size]
+        x_flat = x.view(-1, self.input_size)
         
         # 计算路由概率
-        router_logits = self.router(x)  # [batch_size, seq_len, num_experts]
+        router_logits = self.router(x_flat)  # [batch_size * seq_len, num_experts]
         
         # 在训练时添加噪声以提高稳定性
         if is_training:
             router_logits += torch.randn_like(router_logits) * 0.1
         
-        router_probs = F.softmax(router_logits, dim=-1)  # [batch_size, seq_len, num_experts]
+        router_probs = F.softmax(router_logits, dim=-1)  # [batch_size * seq_len, num_experts]
         
         # 选择Top-k专家
         top_k_probs, top_k_indices = torch.topk(router_probs, k=self.k, dim=-1)
         
         # 归一化Top-k概率
-        top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
-        
-        # 计算每个专家的容量
-        tokens_per_batch = batch_size * seq_len
-        capacity = int(tokens_per_batch * self.capacity_factor * self.k / self.num_experts)
+        top_k_probs = top_k_probs / (top_k_probs.sum(dim=-1, keepdim=True) + 1e-8)
         
         # 初始化输出
-        output = torch.zeros_like(x)
+        output = torch.zeros_like(x_flat)
         
-        # 计算负载均衡损失
-        # 计算每个专家的分配概率
-        router_prob_per_expert = router_probs.sum(dim=[0, 1]) / (batch_size * seq_len)
-        # 计算每个专家的实际使用率
-        expert_usage = torch.zeros(self.num_experts, device=x.device)
-        
-        # 对每个专家进行计算
+        # 更高效的专家计算方法
         for expert_idx in range(self.num_experts):
-            # 找到分配给当前专家的token
-            indices = []
-            for b in range(batch_size):
-                for s in range(seq_len):
-                    for k in range(self.k):
-                        if top_k_indices[b, s, k].item() == expert_idx:
-                            indices.append((b, s, k))
+            # 创建mask来标识分配给当前专家的tokens
+            expert_mask = (top_k_indices == expert_idx)
             
-            # 更新专家使用率
-            expert_usage[expert_idx] = len(indices) / (batch_size * seq_len * self.k)
-            
-            # 如果没有token分配给当前专家，跳过
-            if not indices:
-                continue
-            
-            # 如果分配的token数量超过容量，随机选择一部分
-            if len(indices) > capacity:
-                indices = [indices[i] for i in torch.randperm(len(indices))[:capacity]]
-            
-            # 提取分配给当前专家的输入
-            expert_inputs = torch.stack([x[b, s] for b, s, _ in indices])
-            
-            # 计算专家输出
-            expert_output = self.experts[expert_idx](expert_inputs)
-            
-            # 将专家输出分配回原始位置
-            for idx, (b, s, k) in enumerate(indices):
-                output[b, s] += expert_output[idx] * top_k_probs[b, s, k]
+            if expert_mask.any():
+                # 找到所有分配给当前专家的位置
+                expert_positions = expert_mask.nonzero(as_tuple=False)
+                
+                if expert_positions.size(0) > 0:
+                    # 提取输入tokens
+                    token_indices = expert_positions[:, 0]
+                    k_indices = expert_positions[:, 1]
+                    
+                    expert_inputs = x_flat[token_indices]
+                    expert_weights = top_k_probs[token_indices, k_indices]
+                    
+                    # 计算专家输出
+                    expert_output = self.experts[expert_idx](expert_inputs)
+                    
+                    # 加权输出并累积到最终结果
+                    weighted_output = expert_output * expert_weights.unsqueeze(-1)
+                    output.index_add_(0, token_indices, weighted_output)
         
-        # 计算负载均衡损失
-        load_balancing_loss = (router_prob_per_expert * expert_usage).sum() * self.num_experts
+        # 重塑输出回原始形状
+        output = output.view(original_shape)
+        
+        # 计算标准的负载均衡损失
+        # P(expert) = 平均路由概率, f(expert) = 分配给专家的token比例
+        mean_router_prob_per_expert = router_probs.mean(dim=0)  # [num_experts]
+        
+        # 计算每个专家实际处理的token比例
+        tokens_per_expert = torch.zeros(self.num_experts, device=x.device)
+        for expert_idx in range(self.num_experts):
+            expert_mask = (top_k_indices == expert_idx)
+            tokens_per_expert[expert_idx] = expert_mask.sum().float() / (x_flat.size(0) * self.k)
+        
+        # 负载均衡损失：最小化 sum(P(expert) * f(expert)) * num_experts
+        load_balancing_loss = torch.sum(mean_router_prob_per_expert * tokens_per_expert) * self.num_experts
         
         return output, load_balancing_loss
 
-# 使用示例
+    def get_expert_utilization(self, x):
+        """获取专家利用率统计信息"""
+        batch_size, seq_len, _ = x.shape
+        x_flat = x.view(-1, self.input_size)
+        
+        router_logits = self.router(x_flat)
+        router_probs = F.softmax(router_logits, dim=-1)
+        top_k_probs, top_k_indices = torch.topk(router_probs, k=self.k, dim=-1)
+        
+        # 统计每个专家的使用次数
+        expert_counts = torch.zeros(self.num_experts, device=x.device)
+        for expert_idx in range(self.num_experts):
+            expert_mask = (top_k_indices == expert_idx)
+            expert_counts[expert_idx] = expert_mask.sum().float()
+        
+        return {
+            'expert_counts': expert_counts,
+            'expert_utilization': expert_counts / expert_counts.sum(),
+            'max_utilization': expert_counts.max() / expert_counts.sum(),
+            'min_utilization': expert_counts.min() / expert_counts.sum()
+        }
+
+# 使用示例和测试
 if __name__ == "__main__":
     # 创建一个小型的测试样例
     batch_size = 4
@@ -129,3 +151,21 @@ if __name__ == "__main__":
     print(f"输入形状: {x.shape}")
     print(f"输出形状: {output.shape}")
     print(f"负载均衡损失: {loss.item():.4f}")
+    
+    # 获取专家利用率统计
+    stats = moe_layer.get_expert_utilization(x)
+    print(f"专家利用率分布: {stats['expert_utilization']}")
+    print(f"最大利用率: {stats['max_utilization']:.4f}")
+    print(f"最小利用率: {stats['min_utilization']:.4f}")
+    
+    # 测试梯度计算
+    print("\n测试梯度计算...")
+    loss_total = loss + output.sum()  # 简单的损失函数
+    loss_total.backward()
+    
+    # 检查是否所有专家都有梯度
+    for i, expert in enumerate(moe_layer.experts):
+        if expert.fc1.weight.grad is not None:
+            print(f"专家 {i} 有梯度: 平均梯度大小 = {expert.fc1.weight.grad.abs().mean().item():.6f}")
+        else:
+            print(f"专家 {i} 没有梯度")
