@@ -1,0 +1,30 @@
+# flow.yaml
+inputs:
+  query:
+    type: string
+
+nodes:
+  - name: query_analysis
+    type: python
+    source:
+      path: tools/analyze_query.py
+      function: analyze_query
+    inputs:
+      query: ${inputs.query}
+    outputs:
+      output: ${outputs.result}
+
+  - name: response_generation
+    type: python
+    source:
+      path: tools/generate_response.py
+      function: generate_response
+    inputs:
+      analysis: ${query_analysis}
+    outputs:
+      output: ${outputs.result}
+
+outputs:
+  answer:
+    type: string
+    reference: ${response_generation}
