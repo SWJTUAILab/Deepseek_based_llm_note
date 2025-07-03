@@ -1,0 +1,4 @@
+type: open_ai
+name: openai_connection
+api_key: sk-xf80AAzrL5fGbipjUnmqaaoT9ToVT4xJSRPP8QdwbxFuPzDf # 你的OpenAI API Key
+base_url: https://yibuapi.com/v1
