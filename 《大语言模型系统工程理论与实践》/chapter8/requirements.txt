@@ -1,0 +1,5 @@
+langchain==0.3.25
+langhcain_openai==0.3.16
+promptflow==1.18.0
+promptflow-tools==1.6.0
+openai==1.78.1
