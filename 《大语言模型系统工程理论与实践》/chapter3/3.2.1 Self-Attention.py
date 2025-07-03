@@ -26,7 +26,9 @@ class MultiHeadAttention(nn.Module):
         
         scores = torch.matmul(q, k.transpose(-1, -2)) / np.sqrt(self.d_k)
         if mask is not None:
-            scores = scores.masked_fill(mask.unsqueeze(1).unsqueeze(-1) == 0, -1e9)
+            # 将掩码扩展为 [batch_size, 1, seq_len, seq_len]，以适配多头注意力
+            scores = scores.masked_fill(mask.unsqueeze(1) == 0, -1e9)
+        
         attn = F.softmax(scores, dim=-1)
         
         output = torch.matmul(attn, v)
