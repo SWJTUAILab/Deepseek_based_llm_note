@@ -27,7 +27,10 @@ pip install numpy
 **代码解释**：  
 该代码实现了缩放点积注意力机制（Scaled Dot-Product Attention）。它通过计算查询向量（q）、键向量（k）和值向量（v）之间的点积，得到注意力分数，并进行缩放以避免梯度消失或爆炸问题。然后应用掩码（可选）来屏蔽某些位置的注意力，最后通过 softmax 获取注意力权重，并将其与值向量相乘得到输出。这是Transformer模型中基础的注意力计算方式。
 
-**运行结果**：  
+**运行结果**：
+
+<img width="277" alt="3 1 2" src="https://github.com/user-attachments/assets/082c036b-42dd-4e18-be36-3ebbecbe004e" />
+
 注意力权重形状：`torch.Size([2, 3, 4])` 表示：  
 2：批次大小（Batch Size）→一次处理2个输入序列。  
 3：查询序列长度（Query Length）→ 每个输入序列有3个查询位置。  
