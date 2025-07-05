@@ -219,28 +219,28 @@ def agent_decision(state: AgentState) -> AgentState:
 python 10.3.1 decorator.py
 ```
 
-![image-20250705160038053](D:\A\7.5\Deepseek_based_llm_note\《大语言模型系统工程理论与实践》\chapter10\images\image-20250705160038053.png)
+![image-20250705161830113](images/image-20250705161830113.png)
 
 ```bash
 # 运行自定义工具示例
 python 10.3.2 custom_tool.py
 ```
 
-![image-20250705160048448](D:\A\7.5\Deepseek_based_llm_note\《大语言模型系统工程理论与实践》\chapter10\images\image-20250705160048448.png)
+![image-20250705161835673](images/image-20250705161835673.png)
 
 ```bash
 # 运行多工具代理示例
 python 10.3.3 structured_tool.py
 ```
 
-![image-20250705160054811](D:\A\7.5\Deepseek_based_llm_note\《大语言模型系统工程理论与实践》\chapter10\images\image-20250705160054811.png)
+![image-20250705161840727](images/image-20250705161840727.png)
 
 ```bash
 # 运行多工具代理示例
 python 10.3.4 multi_tool_agent.py
 ```
 
-![image-20250705160250253](D:\A\7.5\Deepseek_based_llm_note\《大语言模型系统工程理论与实践》\chapter10\images\image-20250705160250253.png)
+![image-20250705161845055](images/image-20250705161845055.png)
 
 ### 运行 LangGraph 示例
 
@@ -249,14 +249,14 @@ python 10.3.4 multi_tool_agent.py
 python 10.3.5 langgraph_basic.py
 ```
 
-![image-20250705160523690](D:\A\7.5\Deepseek_based_llm_note\《大语言模型系统工程理论与实践》\chapter10\images\image-20250705160523690.png)
+![image-20250705161849819](images/image-20250705161849819.png)
 
 ```bash
 # 运行决策工具工作流
 python 10.3.6 langgraph_decision_tool.py
 ```
 
-![image-20250705160531064](D:\A\7.5\Deepseek_based_llm_note\《大语言模型系统工程理论与实践》\chapter10\images\image-20250705160531064.png)
+![image-20250705161856510](images/image-20250705161856510.png)
 
 ## 📚 核心概念
 
