@@ -1,0 +1,4 @@
+type: open_ai
+name: openai_connection
+api_key: xxxxx # 你的OpenAI API Key
+base_url: xxxxx

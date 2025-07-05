@@ -1,0 +1,36 @@
+# Core LlamaIndex dependencies
+llama-index>=0.10.0
+
+# Database related
+sqlalchemy>=2.0.0
+
+# Vector retrieval and reranking
+sentence-transformers>=2.2.0
+
+# Knowledge graph related
+networkx>=3.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Document processing
+pypdf>=3.0.0
+python-docx>=0.8.11
+
+# Optional: Vector database support
+chromadb>=0.4.0
+faiss-cpu>=1.7.0
+
+# Optional: LLM interfaces
+openai>=1.0.0
+anthropic>=0.7.0
+
+# Optional: Utilities
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Additional dependencies
+llama-index-embeddings-huggingface 
+llama-index-llms-huggingface
+llama-index-llms-ollama
