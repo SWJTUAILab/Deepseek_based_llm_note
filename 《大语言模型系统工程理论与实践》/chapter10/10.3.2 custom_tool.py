@@ -14,3 +14,5 @@ class CalculatorTool(BaseTool):
             return str(eval(expression))
         except Exception as e:
             return f"计算错误: {str(e)}"
+multiply = CalculatorTool()
+print(multiply.invoke("23 * 45"))
