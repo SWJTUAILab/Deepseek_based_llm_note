@@ -1,6 +1,3 @@
-以下是将该文档转换为Markdown格式的内容：
-
----
 
 # 第三章
 
@@ -10,14 +7,14 @@
 CPU：Intel(R) Core(TM) i7-14650HX  
 GPU：NVIDIA GeForce RTX 4050 Laptop GPU
 
-## 需要安装的依赖以及代码、注释（屏幕截图）
+## 需要安装的依赖以及代码、注释
 
 ```bash
 pip install torch
 pip install numpy
 ```
 
-## 运行结果及解释（屏幕截图）
+## 运行结果及解释
 
 ### 3.1.2 Scaled_Dot-Product_Attention.py
 
