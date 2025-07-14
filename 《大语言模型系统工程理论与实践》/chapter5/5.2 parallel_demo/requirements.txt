@@ -1,0 +1,4 @@
+torch>=1.10
+# 流水线并行和混合并行需要deepspeed
+# 张量并行和混合并行可选megatron-lm（如需更复杂验证）
+deepspeed 
