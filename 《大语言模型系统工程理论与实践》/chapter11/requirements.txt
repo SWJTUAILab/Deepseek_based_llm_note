@@ -1,0 +1,3 @@
+Python 3.11.6
+pip install camel-ai //官方版本不支持
+pip install -U "autogenstudio"   //官方版本不支持
