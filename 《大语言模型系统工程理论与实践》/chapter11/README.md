@@ -32,5 +32,5 @@ if __name__ == "__main__":
 
 ## 问题记录
 
-  1. **Autogen 安装问题** ：原代码中直接使用 `pip install pyautogen` 可能无法满足官方推荐的库版本，需采用 `pip install -U "autogenstudio"` 进行安装。
+  1. **Autogen 安装问题** ：原代码中直接使用 `pip install ag2` 可能无法满足官方推荐的库版本，需采用 `pip install -U "autogenstudio"` 进行安装。
   2. **代码兼容性问题** ：原代码中的 `await Console(group_chat.run_stream(task="Plan a 3 day trip to Nepal."))` 在 Python 下运行不通，需修改为 async 函数封装的形式。
